@@ -1,0 +1,1012 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KidMoney</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 text-slate-700 antialiased">
+    <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <header class="rounded-3xl border border-white/80 bg-white/75 p-5 shadow-lg shadow-pink-100/60 backdrop-blur">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm font-black uppercase tracking-wide text-pink-500">Кабинет Леры 🌸</p>
+            <h1 class="mt-1 text-3xl font-black text-purple-700 sm:text-4xl">Привет, Лерочка! ✨</h1>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="grid grid-cols-2 rounded-2xl border border-pink-100 bg-pink-50 p-1 shadow-inner">
+              <button class="rounded-xl px-4 py-2 text-sm font-bold transition" id="childTabButton" type="button">Лера 👧</button>
+              <button class="rounded-xl px-4 py-2 text-sm font-bold transition" id="parentTabButton" type="button">Мама 👩</button>
+            </div>
+            <div class="rounded-full border border-purple-100 bg-white px-4 py-2 text-sm font-bold text-purple-500 shadow-sm" id="todayLabel"></div>
+          </div>
+        </div>
+      </header>
+
+      <section class="flex flex-col gap-6" id="childView">
+        <section class="grid gap-5 lg:grid-cols-[1fr_1fr]">
+          <article class="rounded-3xl border border-white/90 bg-white p-6 shadow-xl shadow-pink-100/70">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <p class="text-sm font-black uppercase tracking-wide text-pink-400">Твой баланс</p>
+                <div class="mt-3 flex flex-wrap items-end gap-x-3 gap-y-1">
+                  <span class="text-5xl font-black text-purple-700 sm:text-6xl">✨</span>
+                  <span class="text-5xl font-black text-purple-700 sm:text-6xl" id="balanceValue">...</span>
+                  <span class="pb-2 text-2xl font-black text-pink-400">₽ ✨</span>
+                </div>
+              </div>
+              <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-200 to-pink-300 text-3xl shadow-lg shadow-pink-200/70">💎</div>
+            </div>
+            <div class="mt-6 grid grid-cols-2 gap-3">
+              <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 shadow-sm">
+                <p class="text-xs font-black uppercase text-emerald-500">Начисления</p>
+                <p class="mt-2 text-2xl font-black text-emerald-600" id="incomeTotal">0 ₽</p>
+              </div>
+              <div class="rounded-2xl border border-rose-100 bg-rose-50 p-4 shadow-sm">
+                <p class="text-xs font-black uppercase text-rose-400">Удержания</p>
+                <p class="mt-2 text-2xl font-black text-rose-500" id="retentionTotal">0 ₽</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="rounded-3xl border border-white/90 bg-white p-6 shadow-xl shadow-purple-100/70">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <p class="text-sm font-black uppercase tracking-wide text-sky-400">Копилка Леры 🐷</p>
+                <div class="mt-3 flex flex-wrap items-end gap-x-3 gap-y-1">
+                  <span class="text-5xl font-black text-sky-600" id="safeValue">0</span>
+                  <span class="pb-1 text-2xl font-black text-sky-400">₽</span>
+                </div>
+              </div>
+              <div class="rounded-full bg-gradient-to-r from-emerald-200 to-sky-200 px-4 py-2 text-sm font-black text-sky-700 shadow-md shadow-sky-100">+5%</div>
+            </div>
+            <div class="mt-6 grid gap-3 sm:grid-cols-2">
+              <button class="h-12 rounded-2xl bg-gradient-to-r from-sky-300 to-cyan-300 px-4 text-sm font-black text-white shadow-lg shadow-sky-200 transition hover:-translate-y-0.5 hover:scale-[1.02]" id="safeDepositButton" type="button">Положить 💙</button>
+              <button class="h-12 rounded-2xl bg-gradient-to-r from-purple-300 to-pink-300 px-4 text-sm font-black text-white shadow-lg shadow-purple-200 transition hover:-translate-y-0.5 hover:scale-[1.02]" id="safeWithdrawButton" type="button">Забрать 💜</button>
+            </div>
+            <p class="mt-3 text-sm font-bold text-slate-500" id="safeStatus"></p>
+          </article>
+        </section>
+
+        <section class="rounded-3xl border border-white/90 bg-white p-6 shadow-xl shadow-pink-100/70">
+          <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <p class="text-sm font-black uppercase tracking-wide text-pink-400">Раз в день</p>
+              <h2 class="mt-1 text-3xl font-black text-purple-700">Колесо Фортуны Леры 🎡</h2>
+              <p class="mt-3 text-sm font-bold text-slate-500">Крути колесо и выигрывай рубли, вкусняшки и мамины призы.</p>
+              <p class="mt-4 rounded-2xl bg-purple-50 px-4 py-3 text-sm font-black text-purple-500" id="wheelStatusText">Проверяю колесо...</p>
+            </div>
+
+            <div class="flex justify-center">
+              <div class="relative h-72 w-72 sm:h-80 sm:w-80">
+                <div class="absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-2 text-4xl drop-shadow">💖</div>
+                <div
+                  class="relative h-full w-full rounded-full border-[10px] border-white shadow-2xl shadow-pink-200 transition-transform duration-[4200ms] ease-out"
+                  id="fortuneWheel"
+                  style="background: conic-gradient(from -30deg, #f9a8d4 0deg 60deg, #ddd6fe 60deg 120deg, #fde68a 120deg 180deg, #93c5fd 180deg 240deg, #fecdd3 240deg 300deg, #86efac 300deg 360deg);"
+                >
+                  <div class="absolute left-1/2 top-8 -translate-x-1/2 text-center text-sm font-black text-purple-700">✨ +10 ₽ ✨</div>
+                  <div class="absolute right-7 top-20 rotate-[55deg] text-center text-sm font-black text-purple-700">🥰<br />Обнимашки</div>
+                  <div class="absolute bottom-20 right-7 rotate-[115deg] text-center text-sm font-black text-purple-700">🍭<br />Вкусняшка</div>
+                  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 rotate-180 text-center text-sm font-black text-purple-700">💎 +50 ₽!</div>
+                  <div class="absolute bottom-20 left-7 rotate-[245deg] text-center text-sm font-black text-purple-700">😘<br />Поцелуйчик</div>
+                  <div class="absolute left-7 top-20 rotate-[305deg] text-center text-sm font-black text-purple-700">🌟<br />+25 ₽</div>
+                </div>
+                <button class="absolute left-1/2 top-1/2 z-30 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gradient-to-r from-pink-400 to-purple-400 px-4 text-center text-sm font-black text-white shadow-xl shadow-pink-300 transition hover:scale-105 disabled:cursor-not-allowed disabled:from-slate-200 disabled:to-slate-300 disabled:text-slate-500 disabled:shadow-none" id="spinWheelButton" type="button">Крутить! 🎡</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid gap-5 lg:grid-cols-[1fr_1fr]">
+          <section class="rounded-3xl border border-white/90 bg-white p-5 shadow-xl shadow-pink-100/70">
+            <div class="flex items-center justify-between gap-4">
+              <h2 class="text-xl font-black text-purple-700">Задачи на сегодня 🌟</h2>
+              <span class="rounded-full bg-pink-100 px-3 py-1 text-sm font-black text-pink-500" id="tasksCount">0 задач</span>
+            </div>
+            <div class="mt-4 grid gap-3" id="tasksList">
+              <div class="rounded-2xl bg-pink-50 px-5 py-6 text-sm font-bold text-pink-400">Загрузка...</div>
+            </div>
+          </section>
+
+          <section class="rounded-3xl border border-white/90 bg-white p-5 shadow-xl shadow-indigo-100/70">
+            <div class="flex items-center justify-between gap-4">
+              <h2 class="text-xl font-black text-purple-700">Мои цели 💖</h2>
+              <span class="rounded-full bg-purple-100 px-3 py-1 text-sm font-black text-purple-500" id="goalsCount">0 целей</span>
+            </div>
+            <div class="mt-4 grid gap-4" id="goalsList">
+              <div class="rounded-2xl bg-purple-50 p-4 text-sm font-bold text-purple-400">Загрузка...</div>
+            </div>
+          </section>
+        </section>
+
+        <article class="rounded-3xl border border-white/90 bg-white p-6 shadow-xl shadow-pink-100/70">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm font-black uppercase tracking-wide text-pink-400">Шкала недели</p>
+              <h2 class="mt-1 text-xl font-black text-purple-700">Бонус +<span id="weekBonusLabel">200</span> ₽</h2>
+            </div>
+            <span class="rounded-full bg-emerald-100 px-3 py-1 text-sm font-black text-emerald-600" id="weekProgressText">0%</span>
+          </div>
+          <div class="mt-6 h-5 overflow-hidden rounded-full bg-pink-100 shadow-inner">
+            <div class="h-full w-0 rounded-full bg-gradient-to-r from-pink-400 via-purple-400 to-sky-300 transition-all duration-700" id="weekProgressBar"></div>
+          </div>
+          <div class="mt-4 flex items-center justify-between text-sm font-black text-slate-400">
+            <span id="weekEarned">0 ₽</span>
+            <span><span id="weekTargetLabel">200</span> ₽</span>
+          </div>
+        </article>
+
+        <section class="rounded-3xl border border-white/90 bg-white p-5 shadow-xl shadow-purple-100/70">
+          <div class="flex items-center justify-between gap-4">
+            <h2 class="text-xl font-black text-purple-700">История приключений 📜</h2>
+            <span class="rounded-full bg-indigo-100 px-3 py-1 text-sm font-black text-indigo-500" id="historyCount">0 записей</span>
+          </div>
+          <div class="mt-4 grid gap-3" id="historyList">
+            <div class="rounded-2xl bg-indigo-50 px-5 py-6 text-sm font-bold text-indigo-400">Загрузка...</div>
+          </div>
+        </section>
+      </section>
+
+      <section class="hidden flex-col gap-6" id="parentView">
+        <section class="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
+          <article class="rounded-3xl border border-white/90 bg-white p-6 shadow-xl shadow-amber-100/70">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-black uppercase tracking-wide text-amber-500">Панель управления Мамы 👑</p>
+                <h2 class="text-2xl font-black text-purple-700">Мама проверяет задачи</h2>
+              </div>
+              <span class="rounded-full bg-amber-100 px-4 py-2 text-sm font-black text-amber-600" id="pendingCount">0</span>
+            </div>
+            <div class="mt-5 grid gap-3" id="pendingTasksList">
+              <div class="rounded-2xl bg-amber-50 px-4 py-5 text-sm font-bold text-amber-500">Загрузка...</div>
+            </div>
+          </article>
+
+          <article class="rounded-3xl border border-white/90 bg-white p-6 shadow-xl shadow-sky-100/70">
+            <p class="text-sm font-black uppercase tracking-wide text-sky-400">Баланс Леры</p>
+            <div class="mt-3 flex flex-wrap items-end gap-x-3 gap-y-1">
+              <span class="text-4xl font-black text-purple-700" id="parentBalanceValue">...</span>
+              <span class="pb-1 text-xl font-black text-pink-400">₽</span>
+            </div>
+
+            <form class="mt-8 grid gap-4" id="settingsForm">
+              <div>
+                <p class="text-sm font-black uppercase tracking-wide text-pink-400">Настройки недели</p>
+                <h2 class="mt-1 text-xl font-black text-purple-700">Бонус недели</h2>
+              </div>
+              <label class="grid gap-2">
+                <span class="text-sm font-bold text-slate-500">Размер бонуса, ₽</span>
+                <input class="h-12 rounded-2xl border border-purple-100 bg-purple-50 px-4 text-sm font-bold text-purple-700 outline-none ring-pink-200 transition focus:border-pink-300 focus:ring-4" id="weeklyBonusInput" min="1" step="1" type="number" value="200" />
+              </label>
+              <div class="flex flex-wrap items-center gap-3">
+                <button class="h-12 rounded-2xl bg-gradient-to-r from-pink-400 to-purple-400 px-5 text-sm font-black text-white shadow-lg shadow-pink-200 transition hover:-translate-y-0.5 hover:scale-[1.02]" type="submit">Сохранить</button>
+                <p class="text-sm font-bold text-slate-500" id="settingsFormStatus"></p>
+              </div>
+            </form>
+
+            <div class="mt-8 border-t border-pink-100 pt-6">
+              <p class="text-sm font-black uppercase tracking-wide text-sky-400">Копилка</p>
+              <h2 class="mt-1 text-xl font-black text-purple-700">Вклад: <span id="parentSafeValue">0</span> ₽</h2>
+              <button class="mt-4 h-12 rounded-2xl bg-gradient-to-r from-emerald-300 to-sky-300 px-5 text-sm font-black text-white shadow-lg shadow-sky-200 transition hover:-translate-y-0.5 hover:scale-[1.02]" id="interestButton" type="button">Начислить +5%</button>
+              <p class="mt-3 text-sm font-bold text-slate-500" id="interestStatus"></p>
+            </div>
+
+            <div class="mt-8 border-t border-pink-100 pt-6">
+              <p class="text-sm font-black uppercase tracking-wide text-purple-400">Автоматизация</p>
+              <h2 class="mt-1 text-xl font-black text-purple-700">Бонус недели</h2>
+              <button class="mt-4 h-12 rounded-2xl bg-gradient-to-r from-purple-300 to-indigo-300 px-5 text-sm font-black text-white shadow-lg shadow-purple-200 transition hover:-translate-y-0.5 hover:scale-[1.02]" id="bonusCheckButton" type="button">Мама проверяет бонус ✨</button>
+              <p class="mt-3 text-sm font-bold text-slate-500" id="bonusCheckStatus"></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="grid gap-5 lg:grid-cols-2">
+          <article class="rounded-3xl border border-white/90 bg-white p-6 shadow-xl shadow-pink-100/70">
+            <div>
+              <p class="text-sm font-black uppercase tracking-wide text-pink-400">Действия</p>
+              <h2 class="mt-1 text-xl font-black text-purple-700">Добавить удержание или начисление</h2>
+            </div>
+            <form class="mt-6 grid gap-4" id="historyForm">
+              <label class="grid gap-2">
+                <span class="text-sm font-bold text-slate-500">Шаблон</span>
+                <select class="h-12 rounded-2xl border border-pink-100 bg-pink-50 px-4 text-sm font-bold text-purple-700 outline-none ring-pink-200 transition focus:border-pink-300 focus:ring-4" id="historyTemplate">
+                  <option data-amount="-50" data-description="Не заправила постель" value="bed">Не заправила постель (-50 ₽)</option>
+                  <option data-amount="-50" data-description="Не убрала после еды" value="meal">Не убрала после еды (-50 ₽)</option>
+                  <option data-amount="-50" data-description="Не убрала рабочее место" value="workplace">Не убрала рабочее место (-50 ₽)</option>
+                  <option data-amount="-100" data-description="Нагрубила" value="rude">Нагрубила (-100 ₽)</option>
+                  <option data-amount="-150" data-description="Обманула" value="lie">Обманула (-150 ₽)</option>
+                  <option value="custom">Свой вариант</option>
+                </select>
+              </label>
+              <div class="grid gap-4 sm:grid-cols-[1fr_150px]">
+                <input class="h-12 rounded-2xl border border-pink-100 bg-pink-50 px-4 text-sm font-bold text-purple-700 outline-none ring-pink-200 transition placeholder:text-pink-300 focus:border-pink-300 focus:ring-4" id="historyDescription" placeholder="Описание" type="text" />
+                <input class="h-12 rounded-2xl border border-pink-100 bg-pink-50 px-4 text-sm font-bold text-purple-700 outline-none ring-pink-200 transition placeholder:text-pink-300 focus:border-pink-300 focus:ring-4" id="historyAmount" placeholder="-50" type="number" />
+              </div>
+              <div class="flex flex-wrap items-center gap-3">
+                <button class="h-12 rounded-2xl bg-gradient-to-r from-pink-400 to-purple-400 px-5 text-sm font-black text-white shadow-lg shadow-pink-200 transition hover:-translate-y-0.5 hover:scale-[1.02]" type="submit">Применить</button>
+                <p class="text-sm font-bold text-slate-500" id="historyFormStatus"></p>
+              </div>
+            </form>
+          </article>
+
+          <article class="rounded-3xl border border-white/90 bg-white p-6 shadow-xl shadow-emerald-100/70">
+            <div>
+              <p class="text-sm font-black uppercase tracking-wide text-emerald-400">Чек-лист</p>
+              <h2 class="mt-1 text-xl font-black text-purple-700">Добавить задачу на день</h2>
+            </div>
+            <form class="mt-6 grid gap-4" id="taskForm">
+              <input class="h-12 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 text-sm font-bold text-purple-700 outline-none ring-emerald-200 transition placeholder:text-emerald-300 focus:border-emerald-300 focus:ring-4" id="taskTitle" placeholder="Название задачи" type="text" />
+              <input class="h-12 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 text-sm font-bold text-purple-700 outline-none ring-emerald-200 transition placeholder:text-emerald-300 focus:border-emerald-300 focus:ring-4" id="taskReward" min="1" placeholder="Награда" step="1" type="number" />
+              <div class="flex flex-wrap items-center gap-3">
+                <button class="h-12 rounded-2xl bg-gradient-to-r from-emerald-300 to-sky-300 px-5 text-sm font-black text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-0.5 hover:scale-[1.02]" type="submit">Создать</button>
+                <button class="h-12 rounded-2xl bg-white px-5 text-sm font-black text-purple-500 shadow-md shadow-purple-100 ring-2 ring-purple-100 transition hover:-translate-y-0.5 hover:scale-[1.02]" id="tasksResetButton" type="button">Сбросить</button>
+              </div>
+            </form>
+            <p class="mt-3 text-sm font-bold text-slate-500" id="taskFormStatus"></p>
+          </article>
+
+          <article class="rounded-3xl border border-white/90 bg-white p-6 shadow-xl shadow-purple-100/70 lg:col-span-2">
+            <div>
+              <p class="text-sm font-black uppercase tracking-wide text-purple-400">Мечты</p>
+              <h2 class="mt-1 text-xl font-black text-purple-700">Добавить новую цель</h2>
+            </div>
+            <form class="mt-6 grid gap-4 sm:grid-cols-[1fr_180px_auto]" id="goalForm">
+              <input class="h-12 rounded-2xl border border-purple-100 bg-purple-50 px-4 text-sm font-bold text-purple-700 outline-none ring-purple-200 transition placeholder:text-purple-300 focus:border-purple-300 focus:ring-4" id="goalName" placeholder="Название" type="text" />
+              <input class="h-12 rounded-2xl border border-purple-100 bg-purple-50 px-4 text-sm font-bold text-purple-700 outline-none ring-purple-200 transition placeholder:text-purple-300 focus:border-purple-300 focus:ring-4" id="goalCost" min="1" placeholder="Стоимость" step="1" type="number" />
+              <button class="h-12 rounded-2xl bg-gradient-to-r from-purple-400 to-pink-400 px-5 text-sm font-black text-white shadow-lg shadow-purple-200 transition hover:-translate-y-0.5 hover:scale-[1.02]" type="submit">Создать</button>
+            </form>
+            <p class="mt-3 text-sm font-bold text-slate-500" id="goalFormStatus"></p>
+          </article>
+        </section>
+      </section>
+    </main>
+
+    <div class="fixed inset-0 z-50 hidden items-center justify-center bg-purple-950/30 px-4 backdrop-blur-sm" id="pinModal">
+      <div class="w-full max-w-sm rounded-3xl border border-white/90 bg-white p-6 shadow-2xl shadow-purple-200/70">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-sm font-black uppercase tracking-wide text-pink-400">Мамин PIN 🔐</p>
+            <h2 class="mt-1 text-xl font-black text-purple-700">Вход для Мамы 🔑</h2>
+          </div>
+          <button class="flex h-10 w-10 items-center justify-center rounded-2xl bg-pink-50 text-xl font-black leading-none text-pink-400 transition hover:scale-105" id="pinCancelButton" type="button">×</button>
+        </div>
+        <form class="mt-6 grid gap-4" id="pinForm">
+          <input class="h-14 rounded-2xl border border-purple-100 bg-purple-50 px-4 text-center text-2xl font-black tracking-[0.35em] text-purple-700 outline-none ring-pink-200 transition placeholder:text-purple-200 focus:border-pink-300 focus:ring-4" id="pinInput" inputmode="numeric" maxlength="4" placeholder="0000" type="password" />
+          <p class="min-h-5 text-sm font-bold text-rose-500" id="pinError"></p>
+          <button class="h-12 rounded-2xl bg-gradient-to-r from-pink-400 to-purple-400 px-5 text-sm font-black text-white shadow-lg shadow-pink-200 transition hover:-translate-y-0.5 hover:scale-[1.02]" type="submit">Войти</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="fixed inset-0 z-50 hidden items-center justify-center bg-purple-950/30 px-4 backdrop-blur-sm" id="wheelPrizeModal">
+      <div class="w-full max-w-md rounded-3xl border border-white/90 bg-white p-7 text-center shadow-2xl shadow-pink-200/70">
+        <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-pink-300 to-purple-300 text-4xl shadow-lg shadow-pink-200">🎡</div>
+        <p class="mt-5 text-sm font-black uppercase tracking-wide text-pink-400">Колесо Фортуны</p>
+        <h2 class="mt-2 text-2xl font-black text-purple-700" id="wheelPrizeTitle">Ура!</h2>
+        <p class="mt-3 text-base font-bold text-slate-500" id="wheelPrizeText"></p>
+        <button class="mt-6 h-12 rounded-2xl bg-gradient-to-r from-pink-400 to-purple-400 px-6 text-sm font-black text-white shadow-lg shadow-pink-200 transition hover:-translate-y-0.5 hover:scale-[1.02]" id="wheelPrizeCloseButton" type="button">Супер! ✨</button>
+      </div>
+    </div>
+
+    <script>
+      const parentPin = "1234";
+      const coinSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav");
+      const wheelPrizes = [
+        { prize_type: "money", amount: 10, name: "✨ +10 ₽ ✨" },
+        { prize_type: "gift", amount: 0, name: "🥰 Обнимашки" },
+        { prize_type: "gift", amount: 0, name: "🍭 Вкусняшка" },
+        { prize_type: "money", amount: 50, name: "💎 +50 ₽!" },
+        { prize_type: "gift", amount: 0, name: "😘 Поцелуйчик" },
+        { prize_type: "money", amount: 25, name: "🌟 +25 ₽" },
+      ];
+      let weeklyBonus = 200;
+      let currentBalance = 0;
+      let currentSafeBalance = 0;
+      let wheelCanSpin = false;
+      let wheelRotation = 0;
+      let wheelSpinning = false;
+      let parentUnlocked = false;
+
+      const money = new Intl.NumberFormat("ru-RU");
+      const dateFormat = new Intl.DateTimeFormat("ru-RU", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      const $ = (id) => document.getElementById(id);
+      const elements = {
+        childView: $("childView"),
+        parentView: $("parentView"),
+        childTabButton: $("childTabButton"),
+        parentTabButton: $("parentTabButton"),
+        balanceValue: $("balanceValue"),
+        parentBalanceValue: $("parentBalanceValue"),
+        safeValue: $("safeValue"),
+        parentSafeValue: $("parentSafeValue"),
+        safeStatus: $("safeStatus"),
+        safeDepositButton: $("safeDepositButton"),
+        safeWithdrawButton: $("safeWithdrawButton"),
+        fortuneWheel: $("fortuneWheel"),
+        spinWheelButton: $("spinWheelButton"),
+        wheelStatusText: $("wheelStatusText"),
+        wheelPrizeModal: $("wheelPrizeModal"),
+        wheelPrizeTitle: $("wheelPrizeTitle"),
+        wheelPrizeText: $("wheelPrizeText"),
+        wheelPrizeCloseButton: $("wheelPrizeCloseButton"),
+        tasksList: $("tasksList"),
+        tasksCount: $("tasksCount"),
+        goalsList: $("goalsList"),
+        goalsCount: $("goalsCount"),
+        historyList: $("historyList"),
+        historyCount: $("historyCount"),
+        pendingTasksList: $("pendingTasksList"),
+        pendingCount: $("pendingCount"),
+        incomeTotal: $("incomeTotal"),
+        retentionTotal: $("retentionTotal"),
+        weekBonusLabel: $("weekBonusLabel"),
+        weekTargetLabel: $("weekTargetLabel"),
+        weekProgressBar: $("weekProgressBar"),
+        weekProgressText: $("weekProgressText"),
+        weekEarned: $("weekEarned"),
+        historyTemplate: $("historyTemplate"),
+        historyDescription: $("historyDescription"),
+        historyAmount: $("historyAmount"),
+        historyForm: $("historyForm"),
+        historyFormStatus: $("historyFormStatus"),
+        settingsForm: $("settingsForm"),
+        settingsFormStatus: $("settingsFormStatus"),
+        weeklyBonusInput: $("weeklyBonusInput"),
+        bonusCheckButton: $("bonusCheckButton"),
+        bonusCheckStatus: $("bonusCheckStatus"),
+        interestButton: $("interestButton"),
+        interestStatus: $("interestStatus"),
+        taskForm: $("taskForm"),
+        taskTitle: $("taskTitle"),
+        taskReward: $("taskReward"),
+        taskFormStatus: $("taskFormStatus"),
+        tasksResetButton: $("tasksResetButton"),
+        goalForm: $("goalForm"),
+        goalName: $("goalName"),
+        goalCost: $("goalCost"),
+        goalFormStatus: $("goalFormStatus"),
+        pinModal: $("pinModal"),
+        pinForm: $("pinForm"),
+        pinInput: $("pinInput"),
+        pinError: $("pinError"),
+        pinCancelButton: $("pinCancelButton"),
+      };
+
+      $("todayLabel").textContent = new Intl.DateTimeFormat("ru-RU", {
+        day: "numeric",
+        month: "long",
+      }).format(new Date());
+
+      elements.childTabButton.addEventListener("click", () => setView("child"));
+      elements.parentTabButton.addEventListener("click", requestParentAccess);
+      elements.historyTemplate.addEventListener("change", applyTemplate);
+      elements.historyForm.addEventListener("submit", submitHistory);
+      elements.settingsForm.addEventListener("submit", submitSettings);
+      elements.taskForm.addEventListener("submit", submitTask);
+      elements.goalForm.addEventListener("submit", submitGoal);
+      elements.tasksResetButton.addEventListener("click", resetTasks);
+      elements.bonusCheckButton.addEventListener("click", checkWeeklyBonus);
+      elements.interestButton.addEventListener("click", accrueInterest);
+      elements.safeDepositButton.addEventListener("click", () => moveSafeMoney("deposit"));
+      elements.safeWithdrawButton.addEventListener("click", () => moveSafeMoney("withdraw"));
+      elements.spinWheelButton.addEventListener("click", spinWheel);
+      elements.wheelPrizeCloseButton.addEventListener("click", closeWheelPrizeModal);
+      elements.pinForm.addEventListener("submit", submitPin);
+      elements.pinCancelButton.addEventListener("click", () => {
+        closePinModal();
+        setView("child");
+      });
+      elements.tasksList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-complete-task]");
+        if (button) completeTask(Number(button.dataset.completeTask));
+      });
+      elements.goalsList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-buy-goal]");
+        if (button) buyGoal(Number(button.dataset.buyGoal));
+      });
+      elements.pendingTasksList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-review-task]");
+        if (button) reviewTask(Number(button.dataset.reviewTask), button.dataset.decision);
+      });
+
+      setView("child");
+      applyTemplate();
+      loadDashboard();
+
+      function setView(view) {
+        const isParent = view === "parent";
+        elements.childView.classList.toggle("hidden", isParent);
+        elements.childView.classList.toggle("flex", !isParent);
+        elements.parentView.classList.toggle("hidden", !isParent);
+        elements.parentView.classList.toggle("flex", isParent);
+        setTabState(elements.childTabButton, !isParent);
+        setTabState(elements.parentTabButton, isParent);
+        if (isParent) loadDashboard();
+      }
+
+      function setTabState(button, active) {
+        button.className = active
+          ? "rounded-xl bg-gradient-to-r from-pink-400 to-purple-400 px-4 py-2 text-sm font-black text-white shadow-md shadow-pink-200 transition"
+          : "rounded-xl px-4 py-2 text-sm font-black text-purple-400 transition hover:bg-white hover:text-purple-600";
+      }
+
+      function requestParentAccess() {
+        if (parentUnlocked) {
+          setView("parent");
+          return;
+        }
+        elements.pinInput.value = "";
+        elements.pinError.textContent = "";
+        elements.pinModal.classList.remove("hidden");
+        elements.pinModal.classList.add("flex");
+        document.body.classList.add("overflow-hidden");
+        setTimeout(() => elements.pinInput.focus(), 0);
+      }
+
+      function closePinModal() {
+        elements.pinModal.classList.add("hidden");
+        elements.pinModal.classList.remove("flex");
+        document.body.classList.remove("overflow-hidden");
+      }
+
+      function submitPin(event) {
+        event.preventDefault();
+        if (elements.pinInput.value === parentPin) {
+          parentUnlocked = true;
+          closePinModal();
+          setView("parent");
+          return;
+        }
+        elements.pinError.textContent = "Неверный PIN-код";
+        elements.pinInput.value = "";
+        setView("child");
+        setTimeout(closePinModal, 900);
+      }
+
+      async function loadDashboard() {
+        try {
+          const [balanceRes, historyRes, settingsRes, goalsRes, tasksRes, safeRes, pendingRes, wheelRes] = await Promise.all([
+            fetch("/api/balance"),
+            fetch("/api/history"),
+            fetch("/api/settings"),
+            fetch("/api/goals"),
+            fetch("/api/tasks"),
+            fetch("/api/safe"),
+            fetch("/api/parent/pending-tasks"),
+            fetch("/api/wheel/status"),
+          ]);
+          if (![balanceRes, historyRes, settingsRes, goalsRes, tasksRes, safeRes, pendingRes, wheelRes].every((res) => res.ok)) {
+            throw new Error("API request failed");
+          }
+
+          const balanceData = await balanceRes.json();
+          const history = await historyRes.json();
+          const settings = await settingsRes.json();
+          const goals = await goalsRes.json();
+          const tasks = await tasksRes.json();
+          const safe = await safeRes.json();
+          const pendingTasks = await pendingRes.json();
+          const wheelStatus = await wheelRes.json();
+
+          currentBalance = balanceData.balance || 0;
+          currentSafeBalance = safe.balance || 0;
+          applySettings(settings || []);
+          renderBalance(currentBalance);
+          renderSafe(currentSafeBalance);
+          renderHistory(history || []);
+          renderSummary(history || []);
+          renderWeekProgress(history || []);
+          renderGoals(goals || [], currentBalance);
+          renderTasks(tasks || []);
+          renderPendingTasks(pendingTasks || []);
+          renderWheelStatus(wheelStatus);
+        } catch (error) {
+          elements.historyList.innerHTML = '<div class="rounded-2xl bg-rose-50 px-5 py-6 text-sm font-bold text-rose-500">Не удалось загрузить данные</div>';
+        }
+      }
+
+      function applySettings(settings) {
+        const weekly = settings.find((setting) => setting.key === "bonus_weekly");
+        const value = weekly ? Number(weekly.value) : weeklyBonus;
+        if (Number.isFinite(value) && value > 0) weeklyBonus = value;
+        elements.weeklyBonusInput.value = weeklyBonus;
+        elements.weekBonusLabel.textContent = money.format(weeklyBonus);
+        elements.weekTargetLabel.textContent = money.format(weeklyBonus);
+      }
+
+      function renderBalance(balance) {
+        elements.balanceValue.textContent = money.format(balance);
+        elements.parentBalanceValue.textContent = money.format(balance);
+      }
+
+      function renderSafe(balance) {
+        elements.safeValue.textContent = money.format(balance);
+        elements.parentSafeValue.textContent = money.format(balance);
+      }
+
+      function renderWheelStatus(status) {
+        wheelCanSpin = Boolean(status.can_spin);
+        elements.spinWheelButton.disabled = !wheelCanSpin || wheelSpinning;
+        elements.spinWheelButton.textContent = wheelCanSpin ? "Крутить! 🎡" : "Приходи завтра! 🌟";
+        elements.wheelStatusText.textContent = wheelCanSpin
+          ? "Сегодня колесо готово к волшебному прокруту!"
+          : "Лерочка уже крутила колесо сегодня. Новая попытка будет завтра 🌟";
+      }
+
+      async function spinWheel() {
+        if (!wheelCanSpin || wheelSpinning) return;
+
+        wheelSpinning = true;
+        elements.spinWheelButton.disabled = true;
+        elements.spinWheelButton.textContent = "Крутим... ✨";
+        elements.wheelStatusText.textContent = "Колесо выбирает сюрприз...";
+
+        const prizeIndex = Math.floor(Math.random() * wheelPrizes.length);
+        const prize = wheelPrizes[prizeIndex];
+        const sectorSize = 360 / wheelPrizes.length;
+        const sectorCenter = prizeIndex * sectorSize + sectorSize / 2;
+        const targetAtPointer = 360 - sectorCenter;
+        const extraTurns = 5 + Math.floor(Math.random() * 3);
+        const currentAngle = ((wheelRotation % 360) + 360) % 360;
+        const correction = (targetAtPointer - currentAngle + 360) % 360;
+        wheelRotation += extraTurns * 360 + correction;
+        elements.fortuneWheel.style.transform = `rotate(${wheelRotation}deg)`;
+
+        window.setTimeout(async () => {
+          try {
+            await apiPost("/api/wheel/spin", prize);
+            wheelCanSpin = false;
+            wheelSpinning = false;
+            renderWheelStatus({ can_spin: false });
+            showWheelPrize(prize);
+            celebrate();
+            await loadDashboard();
+          } catch (error) {
+            wheelSpinning = false;
+            elements.spinWheelButton.disabled = false;
+            elements.spinWheelButton.textContent = wheelCanSpin ? "Крутить! 🎡" : "Приходи завтра! 🌟";
+            elements.wheelStatusText.textContent = error.message || "Не удалось сохранить приз";
+          }
+        }, 4300);
+      }
+
+      function showWheelPrize(prize) {
+        elements.wheelPrizeTitle.textContent = "Ура! Лерочка выиграла!";
+        elements.wheelPrizeText.textContent = prize.name;
+        elements.wheelPrizeModal.classList.remove("hidden");
+        elements.wheelPrizeModal.classList.add("flex");
+        document.body.classList.add("overflow-hidden");
+      }
+
+      function closeWheelPrizeModal() {
+        elements.wheelPrizeModal.classList.add("hidden");
+        elements.wheelPrizeModal.classList.remove("flex");
+        document.body.classList.remove("overflow-hidden");
+      }
+
+      function renderSummary(history) {
+        const income = history.filter((record) => record.amount > 0).reduce((sum, record) => sum + record.amount, 0);
+        const retention = history
+          .filter((record) => record.amount < 0)
+          .filter((record) => !String(record.description).startsWith("Покупка:"))
+          .filter((record) => !String(record.description).startsWith("Сейф:"))
+          .reduce((sum, record) => sum + Math.abs(record.amount), 0);
+        elements.incomeTotal.textContent = `${money.format(income)} ₽`;
+        elements.retentionTotal.textContent = `${money.format(retention)} ₽`;
+      }
+
+      function renderWeekProgress(history) {
+        const weekStart = getWeekStart(new Date());
+        const earnedThisWeek = history
+          .filter((record) => record.amount > 0)
+          .filter((record) => new Date(record.created_at) >= weekStart)
+          .reduce((sum, record) => sum + record.amount, 0);
+        const percent = Math.min(Math.round((earnedThisWeek / weeklyBonus) * 100), 100);
+        elements.weekProgressBar.style.width = `${percent}%`;
+        elements.weekProgressText.textContent = `${percent}%`;
+        elements.weekEarned.textContent = `${money.format(Math.min(earnedThisWeek, weeklyBonus))} ₽`;
+      }
+
+      function renderTasks(tasks) {
+        const completed = tasks.filter((task) => task.status === "completed").length;
+        elements.tasksCount.textContent = `${completed}/${tasks.length} оплачено`;
+        if (tasks.length === 0) {
+          elements.tasksList.innerHTML = '<div class="rounded-2xl bg-pink-50 px-5 py-6 text-sm font-bold text-pink-400">Задач пока нет</div>';
+          return;
+        }
+        elements.tasksList.innerHTML = tasks.map((task) => taskTemplate(task)).join("");
+      }
+
+      function taskTemplate(task) {
+        const isActive = task.status === "active";
+        const isPending = task.status === "pending";
+        const isCompleted = task.status === "completed";
+        const rowClass = isCompleted
+          ? "border-emerald-100 bg-emerald-50"
+          : isPending
+            ? "border-amber-100 bg-amber-50"
+            : "border-pink-100 bg-gradient-to-r from-pink-50 to-purple-50";
+        const titleClass = isCompleted ? "text-slate-400 line-through" : "text-purple-700";
+        const buttonClass = isCompleted
+          ? "bg-emerald-100 text-emerald-600"
+          : isPending
+            ? "bg-amber-100 text-amber-600"
+            : "bg-gradient-to-r from-pink-400 to-purple-400 text-white shadow-lg shadow-pink-200 hover:-translate-y-0.5 hover:scale-[1.02]";
+        const buttonText = isCompleted ? "Готово! 🌟" : isPending ? "На проверке ⏳" : `Выполнено (+${money.format(task.reward)} ₽)`;
+        const mark = isCompleted ? "✓" : isPending ? "…" : "★";
+        return `
+          <article class="rounded-2xl border p-4 shadow-sm ${rowClass}">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div class="min-w-0">
+                <div class="flex items-center gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-lg font-black shadow-sm">${mark}</span>
+                  <h3 class="text-sm font-black ${titleClass}">${escapeHtml(task.title)}</h3>
+                </div>
+                <p class="ml-12 mt-1 text-sm font-bold text-slate-400">Награда ${money.format(task.reward)} ₽</p>
+              </div>
+              <button class="h-11 rounded-2xl px-4 text-sm font-black transition ${buttonClass}" data-complete-task="${task.id}" ${isActive ? "" : "disabled"} type="button">${buttonText}</button>
+            </div>
+          </article>
+        `;
+      }
+
+      function renderPendingTasks(tasks) {
+        elements.pendingCount.textContent = tasks.length;
+        if (tasks.length === 0) {
+          elements.pendingTasksList.innerHTML = '<div class="rounded-2xl bg-amber-50 px-4 py-5 text-sm font-bold text-amber-500">Нет задач на проверке</div>';
+          return;
+        }
+        elements.pendingTasksList.innerHTML = tasks
+          .map((task) => `
+            <article class="rounded-2xl border border-amber-100 bg-amber-50 p-4 shadow-sm">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 class="text-sm font-black text-purple-700">${escapeHtml(task.title)}</h3>
+                  <p class="mt-1 text-sm font-bold text-amber-600">Награда ${money.format(task.reward)} ₽</p>
+                </div>
+                <div class="flex gap-2">
+                  <button class="h-10 rounded-2xl bg-gradient-to-r from-emerald-300 to-sky-300 px-4 text-sm font-black text-white shadow-md shadow-emerald-100 transition hover:-translate-y-0.5" data-review-task="${task.id}" data-decision="approved" type="button">Мама одобряет! 👍</button>
+                  <button class="h-10 rounded-2xl bg-white px-4 text-sm font-black text-rose-500 shadow-md shadow-rose-100 ring-2 ring-rose-100 transition hover:-translate-y-0.5" data-review-task="${task.id}" data-decision="rejected" type="button">Отклонить</button>
+                </div>
+              </div>
+            </article>
+          `)
+          .join("");
+      }
+
+      function renderGoals(goals, balance) {
+        const activeGoals = goals.filter((goal) => !goal.is_achieved);
+        elements.goalsCount.textContent = activeGoals.length === 0 && goals.length > 0 ? "Все куплено" : `${goals.length} ${goalWord(goals.length)}`;
+        if (goals.length === 0) {
+          elements.goalsList.innerHTML = '<div class="rounded-2xl bg-purple-50 p-4 text-sm font-bold text-purple-400">Целей пока нет</div>';
+          return;
+        }
+        elements.goalsList.innerHTML = goals
+          .map((goal) => {
+            const progress = goal.cost > 0 ? Math.min(Math.round((balance / goal.cost) * 100), 100) : 0;
+            const canBuy = !goal.is_achieved && balance >= goal.cost;
+            const missing = Math.max(goal.cost - balance, 0);
+            return `
+              <article class="rounded-2xl border border-purple-100 bg-gradient-to-r from-purple-50 to-pink-50 p-4 shadow-sm">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <h3 class="truncate text-base font-black text-purple-700">${escapeHtml(goal.name)}</h3>
+                    <p class="mt-1 text-sm font-bold text-pink-400">${money.format(goal.cost)} ₽</p>
+                  </div>
+                  ${goal.is_achieved ? '<span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-600">Куплено! ✨</span>' : `<span class="text-sm font-bold text-purple-400">${canBuy ? "Можно покупать" : `Еще ${money.format(missing)} ₽`}</span>`}
+                </div>
+                <div class="mt-4 h-4 overflow-hidden rounded-full bg-white shadow-inner">
+                  <div class="h-full rounded-full bg-gradient-to-r from-pink-400 via-purple-400 to-teal-300 transition-all duration-700" style="width: ${progress}%"></div>
+                </div>
+                <div class="mt-3 flex items-center justify-between gap-3">
+                  <span class="text-sm font-black text-purple-400">${progress}%</span>
+                  <button class="h-10 rounded-2xl px-4 text-sm font-black transition ${canBuy ? "bg-gradient-to-r from-emerald-300 to-sky-300 text-white shadow-lg shadow-emerald-100 hover:-translate-y-0.5 hover:scale-[1.02]" : "bg-white text-slate-300 ring-2 ring-slate-100"}" data-buy-goal="${goal.id}" ${canBuy ? "" : "disabled"} type="button">${goal.is_achieved ? "Куплено" : "Купить"}</button>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      function renderHistory(history) {
+        elements.historyCount.textContent = `${history.length} ${recordWord(history.length)}`;
+        if (history.length === 0) {
+          elements.historyList.innerHTML = '<div class="rounded-2xl bg-indigo-50 px-5 py-6 text-sm font-bold text-indigo-400">История пока пустая</div>';
+          return;
+        }
+        elements.historyList.innerHTML = history.map((record) => historyTemplate(record)).join("");
+      }
+
+      function historyTemplate(record) {
+        const description = String(record.description);
+        const isPositive = record.amount > 0;
+        const isPurchase = description.startsWith("Покупка:");
+        const isSafe = description.startsWith("Сейф:") || description.startsWith("Проценты сейфа:");
+        const type = isPositive ? "Начисление" : isPurchase ? "Покупка" : isSafe ? "Копилка" : record.amount < 0 ? "Удержание" : "Событие";
+        const style = historyStyle(isPositive, isPurchase, isSafe, record.amount);
+        const sign = record.amount > 0 ? "+" : record.amount < 0 ? "-" : "";
+        const amountText = record.amount === 0 ? "" : `${sign}${money.format(Math.abs(record.amount))} ₽`;
+        return `
+          <article class="rounded-2xl border bg-white p-4 shadow-sm ${style.card}">
+            <div class="flex items-center justify-between gap-4">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="rounded-full px-3 py-1 text-xs font-black ${style.badge}">${type}</span>
+                  <span class="text-xs font-bold text-slate-400">${dateFormat.format(new Date(record.created_at))}</span>
+                </div>
+                <p class="mt-2 truncate text-sm font-black text-purple-700">${escapeHtml(description)}</p>
+              </div>
+              <div class="shrink-0 text-lg font-black ${style.amount}">${amountText}</div>
+            </div>
+          </article>
+        `;
+      }
+
+      function historyStyle(isPositive, isPurchase, isSafe, amount) {
+        if (isPositive) {
+          return {
+            card: "border-emerald-100",
+            badge: "bg-emerald-100 text-emerald-600",
+            amount: "text-emerald-600",
+          };
+        }
+        if (isPurchase || isSafe) {
+          return {
+            card: "border-sky-100",
+            badge: "bg-sky-100 text-sky-600",
+            amount: "text-sky-600",
+          };
+        }
+        if (amount < 0) {
+          return {
+            card: "border-rose-100",
+            badge: "bg-rose-100 text-rose-500",
+            amount: "text-rose-500",
+          };
+        }
+        return {
+          card: "border-indigo-100",
+          badge: "bg-indigo-100 text-indigo-500",
+          amount: "text-slate-400",
+        };
+      }
+
+      function applyTemplate() {
+        const option = elements.historyTemplate.selectedOptions[0];
+        if (!option || option.value === "custom") {
+          elements.historyDescription.value = "";
+          elements.historyAmount.value = "";
+          return;
+        }
+        elements.historyDescription.value = option.dataset.description;
+        elements.historyAmount.value = option.dataset.amount;
+      }
+
+      async function apiPost(url, payload = {}) {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.error || "request failed");
+        }
+        return response.json();
+      }
+
+      async function submitHistory(event) {
+        event.preventDefault();
+        const description = elements.historyDescription.value.trim();
+        const amount = Number(elements.historyAmount.value);
+        if (!description || !Number.isFinite(amount) || amount === 0) {
+          setStatus(elements.historyFormStatus, "Заполни описание и сумму", "error");
+          return;
+        }
+        try {
+          await apiPost("/api/history", { description, amount });
+          setStatus(elements.historyFormStatus, "Готово", "success");
+          await loadDashboard();
+        } catch (error) {
+          setStatus(elements.historyFormStatus, "Не удалось сохранить", "error");
+        }
+      }
+
+      async function submitSettings(event) {
+        event.preventDefault();
+        const value = Number(elements.weeklyBonusInput.value);
+        if (!Number.isFinite(value) || value <= 0) {
+          setStatus(elements.settingsFormStatus, "Укажи сумму больше 0", "error");
+          return;
+        }
+        try {
+          await apiPost("/api/settings", { bonus_weekly: Math.round(value) });
+          setStatus(elements.settingsFormStatus, "Сохранено", "success");
+          await loadDashboard();
+        } catch (error) {
+          setStatus(elements.settingsFormStatus, "Не удалось сохранить", "error");
+        }
+      }
+
+      async function submitTask(event) {
+        event.preventDefault();
+        const title = elements.taskTitle.value.trim();
+        const reward = Number(elements.taskReward.value);
+        if (!title || !Number.isFinite(reward) || reward <= 0) {
+          setStatus(elements.taskFormStatus, "Заполни название и награду", "error");
+          return;
+        }
+        try {
+          await apiPost("/api/tasks", { title, reward: Math.round(reward) });
+          elements.taskTitle.value = "";
+          elements.taskReward.value = "";
+          setStatus(elements.taskFormStatus, "Задача добавлена", "success");
+          await loadDashboard();
+        } catch (error) {
+          setStatus(elements.taskFormStatus, "Не удалось добавить задачу", "error");
+        }
+      }
+
+      async function submitGoal(event) {
+        event.preventDefault();
+        const name = elements.goalName.value.trim();
+        const cost = Number(elements.goalCost.value);
+        if (!name || !Number.isFinite(cost) || cost <= 0) {
+          setStatus(elements.goalFormStatus, "Заполни название и стоимость", "error");
+          return;
+        }
+        try {
+          await apiPost("/api/goals", { name, cost: Math.round(cost) });
+          elements.goalName.value = "";
+          elements.goalCost.value = "";
+          setStatus(elements.goalFormStatus, "Цель добавлена", "success");
+          await loadDashboard();
+        } catch (error) {
+          setStatus(elements.goalFormStatus, "Не удалось добавить цель", "error");
+        }
+      }
+
+      async function completeTask(id) {
+        try {
+          await apiPost("/api/tasks/complete", { task_id: id });
+          await loadDashboard();
+        } catch (error) {
+          elements.tasksList.insertAdjacentHTML("afterbegin", '<div class="rounded-2xl bg-rose-50 px-5 py-4 text-sm font-bold text-rose-500">Не удалось отправить задачу</div>');
+        }
+      }
+
+      async function reviewTask(id, decision) {
+        try {
+          await apiPost("/api/parent/approve-task", { task_id: id, decision });
+          if (decision === "approved") celebrate();
+          await loadDashboard();
+        } catch (error) {
+          elements.pendingTasksList.insertAdjacentHTML("afterbegin", '<div class="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-500">Не удалось обработать запрос</div>');
+        }
+      }
+
+      async function buyGoal(id) {
+        try {
+          await apiPost("/api/goals/buy", { goal_id: id });
+          celebrate();
+          await loadDashboard();
+        } catch (error) {
+          elements.goalsList.insertAdjacentHTML("afterbegin", '<div class="rounded-2xl bg-rose-50 p-3 text-sm font-bold text-rose-500">Не удалось купить цель</div>');
+        }
+      }
+
+      async function resetTasks() {
+        try {
+          await apiPost("/api/tasks/reset");
+          setStatus(elements.taskFormStatus, "Задачи сброшены", "success");
+          await loadDashboard();
+        } catch (error) {
+          setStatus(elements.taskFormStatus, "Не удалось сбросить задачи", "error");
+        }
+      }
+
+      async function checkWeeklyBonus() {
+        setStatus(elements.bonusCheckStatus, "Проверяю...", "");
+        try {
+          const result = await apiPost("/api/bonus/check");
+          setStatus(elements.bonusCheckStatus, result.awarded ? `${result.message}: +${money.format(result.amount)} ₽` : result.message, result.awarded ? "success" : "");
+          if (result.awarded) celebrate();
+          await loadDashboard();
+        } catch (error) {
+          setStatus(elements.bonusCheckStatus, "Не удалось проверить бонус", "error");
+        }
+      }
+
+      async function moveSafeMoney(direction) {
+        const label = direction === "deposit" ? "положить в копилку" : "забрать из копилки";
+        const amount = Number(prompt(`Сколько рублей ${label}?`));
+        if (!Number.isFinite(amount) || amount <= 0) return;
+        try {
+          await apiPost(`/api/safe/${direction}`, { amount: Math.round(amount) });
+          setStatus(elements.safeStatus, "Готово", "success");
+          await loadDashboard();
+        } catch (error) {
+          setStatus(elements.safeStatus, error.message || "Не удалось выполнить операцию", "error");
+        }
+      }
+
+      async function accrueInterest() {
+        setStatus(elements.interestStatus, "Начисляю...", "");
+        try {
+          const result = await apiPost("/api/parent/accrue-interest");
+          setStatus(elements.interestStatus, `Начислено +${money.format(result.amount)} ₽`, "success");
+          if (result.amount > 0) celebrate();
+          await loadDashboard();
+        } catch (error) {
+          setStatus(elements.interestStatus, "Не удалось начислить проценты", "error");
+        }
+      }
+
+      function celebrate() {
+        coinSound.currentTime = 0;
+        coinSound.play().catch(() => {});
+        if (window.confetti) {
+          confetti({ particleCount: 140, spread: 80, origin: { y: 0.65 }, colors: ["#fb7185", "#c084fc", "#7dd3fc", "#86efac", "#fde68a"] });
+        }
+      }
+
+      function setStatus(element, text, type) {
+        element.textContent = text;
+        element.className = type === "error" ? "text-sm font-bold text-rose-500" : type === "success" ? "text-sm font-bold text-emerald-600" : "text-sm font-bold text-slate-500";
+      }
+
+      function getWeekStart(date) {
+        const weekStart = new Date(date);
+        const day = (weekStart.getDay() + 6) % 7;
+        weekStart.setDate(weekStart.getDate() - day);
+        weekStart.setHours(0, 0, 0, 0);
+        return weekStart;
+      }
+
+      function recordWord(count) {
+        const mod10 = count % 10;
+        const mod100 = count % 100;
+        if (mod10 === 1 && mod100 !== 11) return "запись";
+        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "записи";
+        return "записей";
+      }
+
+      function goalWord(count) {
+        const mod10 = count % 10;
+        const mod100 = count % 100;
+        if (mod10 === 1 && mod100 !== 11) return "цель";
+        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "цели";
+        return "целей";
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+    </script>
+  </body>
+</html>
