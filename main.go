@@ -38,6 +38,7 @@ func main() {
 	router.GET("/api/parent/pending-tasks", handleGetPendingTasks)
 	router.POST("/api/parent/approve-task", handleReviewTask)
 	router.POST("/api/parent/accrue-interest", handleAccrueInterest)
+	router.POST("/api/parent/reset", handleParentReset)
 	router.GET("/api/safe", handleGetSafe)
 	router.POST("/api/safe/deposit", handleSafeDeposit)
 	router.POST("/api/safe/withdraw", handleSafeWithdraw)
@@ -409,6 +410,15 @@ func handleAccrueInterest(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result)
+}
+
+func handleParentReset(c *gin.Context) {
+	if err := ResetAllData(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to reset data"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
 func handleWheelStatus(c *gin.Context) {

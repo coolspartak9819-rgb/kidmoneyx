@@ -271,6 +271,16 @@
             </form>
             <p class="mt-3 text-sm font-bold text-slate-500" id="goalFormStatus"></p>
           </article>
+
+          <article class="rounded-3xl border border-rose-100 bg-white p-6 shadow-xl shadow-rose-100/70 lg:col-span-2">
+            <div>
+              <p class="text-sm font-black uppercase tracking-wide text-rose-400">Опасная зона ⚠️</p>
+              <h2 class="mt-1 text-xl font-black text-purple-700">Настройки базы</h2>
+              <p class="mt-2 text-sm font-bold text-slate-500">Очистит историю, обнулит баланс, копилку и снова откроет колесо фортуны.</p>
+            </div>
+            <button class="mt-5 h-12 rounded-2xl bg-gradient-to-r from-rose-400 to-pink-500 px-5 text-sm font-black text-white shadow-lg shadow-rose-200 transition hover:-translate-y-0.5 hover:scale-[1.02]" id="resetAllButton" type="button">Сбросить все данные Леры 🔄</button>
+            <p class="mt-3 text-sm font-bold text-slate-500" id="resetAllStatus"></p>
+          </article>
         </section>
       </section>
     </main>
@@ -385,6 +395,8 @@
         goalName: $("goalName"),
         goalCost: $("goalCost"),
         goalFormStatus: $("goalFormStatus"),
+        resetAllButton: $("resetAllButton"),
+        resetAllStatus: $("resetAllStatus"),
         pinModal: $("pinModal"),
         pinForm: $("pinForm"),
         pinInput: $("pinInput"),
@@ -407,6 +419,7 @@
       elements.tasksResetButton.addEventListener("click", resetTasks);
       elements.bonusCheckButton.addEventListener("click", checkWeeklyBonus);
       elements.interestButton.addEventListener("click", accrueInterest);
+      elements.resetAllButton.addEventListener("click", resetAllData);
       elements.safeDepositButton.addEventListener("click", () => moveSafeMoney("deposit"));
       elements.safeWithdrawButton.addEventListener("click", () => moveSafeMoney("withdraw"));
       elements.spinWheelButton.addEventListener("click", spinWheel);
@@ -959,6 +972,19 @@
           await loadDashboard();
         } catch (error) {
           setStatus(elements.interestStatus, "Не удалось начислить проценты", "error");
+        }
+      }
+
+      async function resetAllData() {
+        const confirmed = confirm("Лерочка, ты точно хочешь сбросить весь баланс, сейф и историю? Это действие нельзя отменить!");
+        if (!confirmed) return;
+
+        setStatus(elements.resetAllStatus, "Сбрасываю данные...", "");
+        try {
+          await apiPost("/api/parent/reset");
+          location.reload();
+        } catch (error) {
+          setStatus(elements.resetAllStatus, "Не удалось сбросить данные", "error");
         }
       }
 

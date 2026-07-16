@@ -640,6 +640,29 @@ func ResetTasks() error {
 	return err
 }
 
+func ResetAllData() error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	queries := []string{
+		`DELETE FROM history;`,
+		`UPDATE safe SET balance = 0;`,
+		`UPDATE tasks SET status = 'active';`,
+		`UPDATE wheel_status SET last_spin_date = '';`,
+	}
+
+	for _, query := range queries {
+		if _, err := tx.Exec(query); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
 func GetSafe() (SafeInfo, error) {
 	var safe SafeInfo
 	if err := DB.QueryRow(`SELECT balance FROM safe WHERE id = 1;`).Scan(&safe.Balance); err != nil {
