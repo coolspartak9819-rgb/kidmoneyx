@@ -5,16 +5,15 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-
-	"kidmoney/database"
 )
 
 func main() {
-	if err := database.Init(); err != nil {
+	if err := Init(); err != nil {
 		log.Fatalf("failed to initialize database: %v", err)
 	}
 
@@ -44,16 +43,20 @@ func main() {
 	router.POST("/api/safe/withdraw", handleSafeWithdraw)
 	router.GET("/api/wheel/status", handleWheelStatus)
 	router.POST("/api/wheel/spin", handleWheelSpin)
-	router.Static("/static", "./static")
-	router.StaticFile("/", "./static/index.html")
+	router.StaticFile("/", "./index.html")
 
-	if err := router.Run(":8080"); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("failed to start server: %v", err)
 	}
 }
 
 func handleGetSettings(c *gin.Context) {
-	settings, err := database.GetSettings()
+	settings, err := GetSettings()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load settings"})
 		return
@@ -75,12 +78,12 @@ func handleUpdateSettings(c *gin.Context) {
 		return
 	}
 
-	if err := database.UpdateSettings(settings); err != nil {
+	if err := UpdateSettings(settings); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update settings"})
 		return
 	}
 
-	updatedSettings, err := database.GetSettings()
+	updatedSettings, err := GetSettings()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "settings updated, but failed to reload them"})
 		return
@@ -90,7 +93,7 @@ func handleUpdateSettings(c *gin.Context) {
 }
 
 func handleGetHistory(c *gin.Context) {
-	history, err := database.GetHistory()
+	history, err := GetHistory()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load history"})
 		return
@@ -112,12 +115,12 @@ func handleAddHistory(c *gin.Context) {
 		return
 	}
 
-	if err := database.AddHistory(request.Description, request.Amount); err != nil {
+	if err := AddHistory(request.Description, request.Amount); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to add history record"})
 		return
 	}
 
-	balance, err := database.GetBalance()
+	balance, err := GetBalance()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "history record added, but failed to calculate balance"})
 		return
@@ -127,7 +130,7 @@ func handleAddHistory(c *gin.Context) {
 }
 
 func handleGetBalance(c *gin.Context) {
-	balance, err := database.GetBalance()
+	balance, err := GetBalance()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to calculate balance"})
 		return
@@ -137,7 +140,7 @@ func handleGetBalance(c *gin.Context) {
 }
 
 func handleCheckWeeklyBonus(c *gin.Context) {
-	result, err := database.CheckWeeklyBonus()
+	result, err := CheckWeeklyBonus()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to check weekly bonus"})
 		return
@@ -147,7 +150,7 @@ func handleCheckWeeklyBonus(c *gin.Context) {
 }
 
 func handleGetGoals(c *gin.Context) {
-	goals, err := database.GetGoals()
+	goals, err := GetGoals()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load goals"})
 		return
@@ -169,12 +172,12 @@ func handleAddGoal(c *gin.Context) {
 		return
 	}
 
-	if err := database.AddGoal(request.Name, request.Cost); err != nil {
+	if err := AddGoal(request.Name, request.Cost); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to add goal"})
 		return
 	}
 
-	goals, err := database.GetGoals()
+	goals, err := GetGoals()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "goal added, but failed to reload goals"})
 		return
@@ -200,14 +203,14 @@ func handleBuyGoal(c *gin.Context) {
 		return
 	}
 
-	goal, balance, err := database.BuyGoal(goalID)
+	goal, balance, err := BuyGoal(goalID)
 	if err != nil {
 		switch {
-		case errors.Is(err, database.ErrGoalNotFound):
+		case errors.Is(err, ErrGoalNotFound):
 			c.JSON(http.StatusNotFound, gin.H{"error": "goal not found"})
-		case errors.Is(err, database.ErrGoalAlreadyBought):
+		case errors.Is(err, ErrGoalAlreadyBought):
 			c.JSON(http.StatusConflict, gin.H{"error": "goal already bought"})
-		case errors.Is(err, database.ErrNotEnoughBalance):
+		case errors.Is(err, ErrNotEnoughBalance):
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Недостаточно средств", "balance": balance})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to buy goal"})
@@ -219,7 +222,7 @@ func handleBuyGoal(c *gin.Context) {
 }
 
 func handleGetTasks(c *gin.Context) {
-	tasks, err := database.GetTasks()
+	tasks, err := GetTasks()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load tasks"})
 		return
@@ -241,12 +244,12 @@ func handleAddTask(c *gin.Context) {
 		return
 	}
 
-	if err := database.AddTask(request.Title, request.Reward); err != nil {
+	if err := AddTask(request.Title, request.Reward); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to add task"})
 		return
 	}
 
-	tasks, err := database.GetTasks()
+	tasks, err := GetTasks()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "task added, but failed to reload tasks"})
 		return
@@ -272,14 +275,14 @@ func handleCompleteTask(c *gin.Context) {
 		return
 	}
 
-	task, err := database.CompleteTask(taskID)
+	task, err := CompleteTask(taskID)
 	if err != nil {
 		switch {
-		case errors.Is(err, database.ErrTaskNotFound):
+		case errors.Is(err, ErrTaskNotFound):
 			c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
-		case errors.Is(err, database.ErrTaskAlreadyComplete):
+		case errors.Is(err, ErrTaskAlreadyComplete):
 			c.JSON(http.StatusConflict, gin.H{"error": "task already completed"})
-		case errors.Is(err, database.ErrTaskNotActive):
+		case errors.Is(err, ErrTaskNotActive):
 			c.JSON(http.StatusConflict, gin.H{"error": "task is already waiting for review"})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to complete task"})
@@ -291,12 +294,12 @@ func handleCompleteTask(c *gin.Context) {
 }
 
 func handleResetTasks(c *gin.Context) {
-	if err := database.ResetTasks(); err != nil {
+	if err := ResetTasks(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to reset tasks"})
 		return
 	}
 
-	tasks, err := database.GetTasks()
+	tasks, err := GetTasks()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "tasks reset, but failed to reload tasks"})
 		return
@@ -306,7 +309,7 @@ func handleResetTasks(c *gin.Context) {
 }
 
 func handleGetPendingTasks(c *gin.Context) {
-	tasks, err := database.GetPendingTasks()
+	tasks, err := GetPendingTasks()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load pending tasks"})
 		return
@@ -332,12 +335,12 @@ func handleReviewTask(c *gin.Context) {
 		return
 	}
 
-	task, balance, err := database.ReviewTask(taskID, request.Decision == "approved")
+	task, balance, err := ReviewTask(taskID, request.Decision == "approved")
 	if err != nil {
 		switch {
-		case errors.Is(err, database.ErrTaskNotFound):
+		case errors.Is(err, ErrTaskNotFound):
 			c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
-		case errors.Is(err, database.ErrTaskNotPending):
+		case errors.Is(err, ErrTaskNotPending):
 			c.JSON(http.StatusConflict, gin.H{"error": "task is not pending"})
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to review task"})
@@ -349,7 +352,7 @@ func handleReviewTask(c *gin.Context) {
 }
 
 func handleGetSafe(c *gin.Context) {
-	safe, err := database.GetSafe()
+	safe, err := GetSafe()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load safe"})
 		return
@@ -365,9 +368,9 @@ func handleSafeDeposit(c *gin.Context) {
 		return
 	}
 
-	result, err := database.DepositToSafe(request.Amount)
+	result, err := DepositToSafe(request.Amount)
 	if err != nil {
-		if errors.Is(err, database.ErrNotEnoughBalance) {
+		if errors.Is(err, ErrNotEnoughBalance) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Недостаточно средств"})
 			return
 		}
@@ -385,9 +388,9 @@ func handleSafeWithdraw(c *gin.Context) {
 		return
 	}
 
-	result, err := database.WithdrawFromSafe(request.Amount)
+	result, err := WithdrawFromSafe(request.Amount)
 	if err != nil {
-		if errors.Is(err, database.ErrNotEnoughSafeMoney) {
+		if errors.Is(err, ErrNotEnoughSafeMoney) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Недостаточно денег в сейфе"})
 			return
 		}
@@ -399,7 +402,7 @@ func handleSafeWithdraw(c *gin.Context) {
 }
 
 func handleAccrueInterest(c *gin.Context) {
-	result, err := database.AccrueSafeInterest(5)
+	result, err := AccrueSafeInterest(5)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to accrue interest"})
 		return
@@ -409,7 +412,7 @@ func handleAccrueInterest(c *gin.Context) {
 }
 
 func handleWheelStatus(c *gin.Context) {
-	status, err := database.GetWheelStatus()
+	status, err := GetWheelStatus()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load wheel status"})
 		return
@@ -435,13 +438,13 @@ func handleWheelSpin(c *gin.Context) {
 		return
 	}
 
-	status, amount, err := database.SpinWheel(database.WheelPrize{
+	status, amount, err := SpinWheel(WheelPrize{
 		PrizeType: request.PrizeType,
 		Amount:    request.Amount,
 		Name:      request.Name,
 	})
 	if err != nil {
-		if errors.Is(err, database.ErrWheelAlreadySpun) {
+		if errors.Is(err, ErrWheelAlreadySpun) {
 			c.JSON(http.StatusConflict, gin.H{"error": "wheel already spun today", "can_spin": false})
 			return
 		}
@@ -449,7 +452,7 @@ func handleWheelSpin(c *gin.Context) {
 		return
 	}
 
-	balance, err := database.GetBalance()
+	balance, err := GetBalance()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "wheel spun, but failed to calculate balance"})
 		return
@@ -504,17 +507,17 @@ type wheelPrizeRequest struct {
 	Name      string `json:"name"`
 }
 
-func parseSettingsPayload(body []byte) ([]database.Setting, error) {
-	var settings []database.Setting
+func parseSettingsPayload(body []byte) ([]Setting, error) {
+	var settings []Setting
 	if err := json.Unmarshal(body, &settings); err == nil {
 		return validateSettings(settings)
 	}
 
 	var values map[string]string
 	if err := json.Unmarshal(body, &values); err == nil {
-		settings = make([]database.Setting, 0, len(values))
+		settings = make([]Setting, 0, len(values))
 		for key, value := range values {
-			settings = append(settings, database.Setting{Key: key, Value: value})
+			settings = append(settings, Setting{Key: key, Value: value})
 		}
 
 		return validateSettings(settings)
@@ -522,9 +525,9 @@ func parseSettingsPayload(body []byte) ([]database.Setting, error) {
 
 	var numericValues map[string]int
 	if err := json.Unmarshal(body, &numericValues); err == nil {
-		settings = make([]database.Setting, 0, len(numericValues))
+		settings = make([]Setting, 0, len(numericValues))
 		for key, value := range numericValues {
-			settings = append(settings, database.Setting{Key: key, Value: strconv.Itoa(value)})
+			settings = append(settings, Setting{Key: key, Value: strconv.Itoa(value)})
 		}
 
 		return validateSettings(settings)
@@ -533,7 +536,7 @@ func parseSettingsPayload(body []byte) ([]database.Setting, error) {
 	return nil, errInvalidSettingsPayload
 }
 
-func validateSettings(settings []database.Setting) ([]database.Setting, error) {
+func validateSettings(settings []Setting) ([]Setting, error) {
 	if len(settings) == 0 {
 		return nil, errEmptySettingsPayload
 	}
